@@ -1,0 +1,8 @@
+project_id    = "test-devops-478606"
+region        = "asia-southeast1"
+cluster_name  = "gke-prod"
+network_name  = "prod-network"
+subnet_name   = "prod-subnet"
+subnet_cidr   = "10.20.0.0/24"
+office_ip     = "0.0.0.0/0"
+zone          = "asia-southeast1-a"
