@@ -23,8 +23,8 @@ podAnnotations:
   cluster: "gke-nonprod"
 
 datadog:
-  enabled: true
-  apiKey: ""  # Set via --set or secret
+  enabled: true  # เปิดใช้งาน Datadog
+  apiKey: "5d8326c2c77f6c4551c8de7e232becb4"
   site: "datadoghq.com"
 
   agent:

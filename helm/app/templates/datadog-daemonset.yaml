@@ -19,10 +19,27 @@ spec:
         ad.datadoghq.com/agent.init_configs: '[{}]'
     spec:
       serviceAccountName: {{ include "test-devops-app.fullname" . }}-datadog
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: datadog-agent
         image: "{{ .Values.datadog.agent.image.repository }}:{{ .Values.datadog.agent.image.tag }}"
         imagePullPolicy: {{ .Values.datadog.agent.image.pullPolicy }}
+        securityContext:
+          runAsUser: 0
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+              - SYS_RESOURCE
+              - SYS_PTRACE
+              - NET_ADMIN
+              - NET_BROADCAST
+              - NET_RAW
+              - IPC_LOCK
+              - CHOWN
         ports:
         {{- if .Values.datadog.agent.dogstatsd.enabled }}
         - containerPort: {{ .Values.datadog.agent.dogstatsd.port }}
@@ -77,6 +94,22 @@ spec:
           value: "5555"
         - name: KUBERNETES
           value: "true"
+        - name: DD_CLUSTER_AGENT_ENABLED
+          value: "false"
+        - name: DD_COLLECT_KUBERNETES_EVENTS
+          value: "true"
+        - name: DD_LEADER_ELECTION
+          value: "false"
+        - name: DD_CLUSTER_NAME
+          value: {{ .Values.global.clusterName | quote }}
+        - name: DD_ENV
+          value: {{ .Values.global.environment | quote }}
+        - name: DD_TAGS
+          value: "env:{{ .Values.global.environment }},cluster:{{ .Values.global.clusterName }}"
+        - name: DD_AC_INCLUDE
+          value: "image_name:.*"
+        - name: DD_AC_EXCLUDE
+          value: "name:datadog-agent"
         resources:
 {{ toYaml .Values.datadog.agent.resources | indent 10 }}
         volumeMounts:
@@ -89,10 +122,12 @@ spec:
         - name: cgroups
           mountPath: /host/sys/fs/cgroup
           readOnly: true
-        {{- if .Values.datadog.agent.logs.enabled }}
-        - name: pointerdir
-          mountPath: /opt/datadog-agent/run
-        {{- end }}
+        - name: tmpdir
+          mountPath: /tmp
+        - name: agent-run
+          mountPath: /var/run/datadog
+        - name: agent-etc
+          mountPath: /etc/datadog-agent
         livenessProbe:
           httpGet:
             path: /health
@@ -121,10 +156,11 @@ spec:
       - name: cgroups
         hostPath:
           path: /sys/fs/cgroup
-      {{- if .Values.datadog.agent.logs.enabled }}
-      - name: pointerdir
-        hostPath:
-          path: /opt/datadog-agent/run
-      {{- end }}
+      - name: tmpdir
+        emptyDir: {}
+      - name: agent-run
+        emptyDir: {}
+      - name: agent-etc
+        emptyDir: {}
 {{- end }}
 
