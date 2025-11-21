@@ -22,3 +22,22 @@ variable "subnet_cidr" {
   description = "Subnetwork CIDR range"
   type        = string
 }
+
+variable "pods_cidr" {
+  description = "Secondary IP range สำหรับ Kubernetes Pods"
+  type        = string
+  default     = "10.100.0.0/16"
+}
+
+variable "services_cidr" {
+  description = "Secondary IP range สำหรับ Kubernetes Services"
+  type        = string
+  default     = "10.101.0.0/16"
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+

@@ -1,0 +1,67 @@
+# ตัวอย่างไฟล์ tfvars สำหรับ environment ต่างๆ
+spot_machine_type    = "e2-standard-2"
+spot_max_nodes       = 10
+enable_spot_pool     = true   # false = ไม่สร้าง spot pool
+# Spot VM Pool (สำหรับประหยัดค่าใช้จ่าย, optional)
+
+general_machine_type = "e2-standard-2"  # 2 vCPU, 8 GB RAM
+general_max_nodes    = 10
+general_min_nodes    = 1
+general_node_count   = 2
+# General Node Pool (สำหรับ application workloads)
+
+system_machine_type = "e2-medium"  # 2 vCPU, 4 GB RAM
+system_max_nodes    = 3
+system_min_nodes    = 1
+system_node_count   = 1
+# System Node Pool (สำหรับ system workloads)
+
+# ==========================================
+# Node Pool Configuration
+# ==========================================
+
+enable_binary_authorization = false
+enable_managed_prometheus   = true
+# Monitoring & Security
+
+maintenance_start_time   = "03:00"
+# Maintenance Window (UTC time, HH:MM format)
+
+release_channel          = "REGULAR"
+# Release Channel: RAPID, REGULAR, STABLE
+
+regional_cluster         = false  # true = regional cluster (HA)
+enable_private_endpoint  = false  # true = ปิด public access ทั้งหมด
+# Security Settings
+
+office_ip     = "YOUR.IP.ADDRESS.HERE/32"
+# ดู IP ของคุณได้จาก: curl ifconfig.me
+# ห้ามใช้ 0.0.0.0/0 ใน production!
+# ⚠️ IMPORTANT: ระบุ IP ที่อนุญาตให้เข้าถึง Control Plane
+
+cluster_name  = "gke-dev"
+# ==========================================
+# GKE Cluster Configuration
+# ==========================================
+
+services_cidr = "10.101.0.0/16"
+pods_cidr     = "10.100.0.0/16"
+# Secondary IP ranges สำหรับ GKE
+
+subnet_cidr   = "10.10.0.0/24"
+subnet_name   = "dev-subnet"
+network_name  = "dev-network"
+# ==========================================
+# Network Configuration
+# ==========================================
+
+environment   = "dev"  # dev, staging, nonprod, prod
+zone          = "asia-southeast1-a"
+region        = "asia-southeast1"
+project_id    = "YOUR-GCP-PROJECT-ID"
+# ==========================================
+# Project Configuration
+# ==========================================
+
+# คัดลอกไฟล์นี้และแก้ไขตามความต้องการ
+
