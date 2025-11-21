@@ -13,6 +13,18 @@ spec:
     path: helm/app
     repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
+
+    # ✨ เพิ่มส่วนนี้เพื่อบอกว่าเป็น Helm chart และใช้ values-develop.yaml
+    helm:
+      releaseName: test-devops
+      valueFiles:
+        - values-develop.yaml  # ← ตรงนี้! บอก ArgoCD ให้ใช้ values-develop.yaml
+
+      # Parameters เพิ่มเติม (optional)
+      parameters:
+        - name: global.environment
+          value: 'develop'
+
   syncPolicy:
     automated:
       prune: true
