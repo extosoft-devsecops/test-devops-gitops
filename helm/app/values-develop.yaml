@@ -36,3 +36,4 @@ datadog:
         cpu: 500m
         memory: 512Mi
 
+# Updated to disable Datadog - Fri Nov 21 23:24:28 +07 2025
