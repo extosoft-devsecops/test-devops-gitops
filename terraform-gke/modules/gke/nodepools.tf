@@ -1,7 +1,7 @@
 resource "google_container_node_pool" "system" {
-  cluster    = google_container_cluster.primary.name
-  location   = var.regional_cluster ? var.region : var.zone
-  name       = "system-pool"
+  cluster  = google_container_cluster.primary.name
+  location = var.regional_cluster ? var.region : var.zone
+  name     = "system-pool"
 
   # Node count - สำหรับ zonal cluster
   node_count = var.regional_cluster ? null : var.system_node_count
@@ -70,9 +70,9 @@ resource "google_container_node_pool" "system" {
 
 # General Workload Node Pool
 resource "google_container_node_pool" "general" {
-  cluster    = google_container_cluster.primary.name
-  location   = var.regional_cluster ? var.region : var.zone
-  name       = "general-pool"
+  cluster  = google_container_cluster.primary.name
+  location = var.regional_cluster ? var.region : var.zone
+  name     = "general-pool"
 
   node_count         = var.regional_cluster ? null : var.general_node_count
   node_locations     = var.regional_cluster ? var.node_locations : null
@@ -131,9 +131,9 @@ resource "google_container_node_pool" "general" {
 resource "google_container_node_pool" "spot" {
   count = var.enable_spot_pool ? 1 : 0
 
-  cluster    = google_container_cluster.primary.name
-  location   = var.regional_cluster ? var.region : var.zone
-  name       = "spot-pool"
+  cluster  = google_container_cluster.primary.name
+  location = var.regional_cluster ? var.region : var.zone
+  name     = "spot-pool"
 
   node_count         = var.regional_cluster ? null : 0
   node_locations     = var.regional_cluster ? var.node_locations : null
@@ -161,7 +161,7 @@ resource "google_container_node_pool" "spot" {
     disk_type       = "pd-standard"
     disk_size_gb    = 100
     image_type      = "COS_CONTAINERD"
-    spot            = true  # Spot VM
+    spot            = true # Spot VM
 
     labels = {
       pool        = "spot"

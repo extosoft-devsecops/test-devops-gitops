@@ -45,8 +45,8 @@ resource "google_container_cluster" "primary" {
 
   # Network Policy
   network_policy {
-    enabled  = true
-    provider = "PROVIDER_UNSPECIFIED" # ใช้ default provider ของ GKE
+    enabled  = false
+    # provider = "PROVIDER_UNSPECIFIED" # ใช้ default provider ของ GKE
   }
 
   # Enable Dataplane V2 (eBPF-based networking)
@@ -58,7 +58,7 @@ resource "google_container_cluster" "primary" {
 
   # Monitoring & Logging Configuration
   monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS"]
 
     managed_prometheus {
       enabled = var.enable_managed_prometheus
@@ -66,13 +66,13 @@ resource "google_container_cluster" "primary" {
   }
 
   logging_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS"]
   }
 
   # Binary Authorization (ถ้าต้องการ)
-  binary_authorization {
-    evaluation_mode = var.enable_binary_authorization ? "PROJECT_SINGLETON_POLICY_ENFORCE" : "DISABLED"
-  }
+  # binary_authorization {
+  #  evaluation_mode = var.enable_binary_authorization ? "PROJECT_SINGLETON_POLICY_ENFORCE" : "DISABLED"
+  # }
 
   # Addons
   addons_config {
@@ -83,7 +83,7 @@ resource "google_container_cluster" "primary" {
       disabled = false
     }
     network_policy_config {
-      disabled = false
+      disabled = true
     }
     gce_persistent_disk_csi_driver_config {
       enabled = true
@@ -96,6 +96,7 @@ resource "google_container_cluster" "primary" {
     managed_by  = "terraform"
   }
 
-  # Deletion Protection (ป้องกันการลบ cluster โดยไม่ตั้งใจ)
-  deletion_protection = var.environment == "prod" ? true : false
+  lifecycle {
+    prevent_destroy = false # เปลี่ยนเป็น true สำหรับ production
+  }
 }
