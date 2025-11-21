@@ -56,10 +56,7 @@ spec:
         {{- end }}
         env:
         - name: DD_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "test-devops-app.fullname" . }}-datadog-secret
-              key: api-key
+          value: {{ .Values.datadog.apiKey | quote }}
         - name: DD_SITE
           value: {{ .Values.datadog.site | quote }}
         - name: DD_KUBERNETES_KUBELET_HOST
