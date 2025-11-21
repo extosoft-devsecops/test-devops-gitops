@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cf-runtime-app-project
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destinations:
+  - namespace: '*'
+    server: '*'
+  sourceRepos:
+  - https://github.com/extosoft-devsecops/test-devops.git
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
