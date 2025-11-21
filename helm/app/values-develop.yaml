@@ -23,8 +23,8 @@ podAnnotations:
   cluster: "gke-nonprod"
 
 datadog:
-  enabled: false  # ปิดไว้จนกว่าจะได้ API key ที่ถูกต้อง
-  apiKey: "REPLACE_WITH_REAL_DATADOG_API_KEY"  # ⚠️ ต้องได้ API key จริงจาก Datadog Dashboard
+  enabled: false  # ปิดใช้งาน Datadog - ArgoCD sync required
+  apiKey: ""
   site: "datadoghq.com"
 
   agent:
@@ -36,3 +36,4 @@ datadog:
         cpu: 500m
         memory: 512Mi
 
+# Updated to disable Datadog - Fri Nov 21 23:24:28 +07 2025
