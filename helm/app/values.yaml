@@ -1,0 +1,72 @@
+replicaCount: 1
+
+image:
+  repository: asia-southeast1-docker.pkg.dev/test-devops-478606/test-devops-images/test-devops
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+env:
+  serviceName: "test-devops"
+  enableMetrics: "true"
+  ddDogstatsdPort: "8125"
+  nodeEnv: "local"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+podAnnotations: {}
+
+# Datadog Agent Configuration
+datadog:
+  enabled: true
+  apiKey: ""  # Set via --set datadog.apiKey=<YOUR_API_KEY> or use secrets
+  site: "datadoghq.com"
+
+  agent:
+    image:
+      repository: gcr.io/datadoghq/agent
+      tag: "7"
+      pullPolicy: IfNotPresent
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # DogStatsD configuration
+    dogstatsd:
+      enabled: true
+      port: 8125
+      useHostPort: true
+      nonLocalTraffic: true
+
+    # APM configuration
+    apm:
+      enabled: false
+      port: 8126
+
+    # Log collection
+    logs:
+      enabled: true
+      containerCollectAll: true
+
+    # Process monitoring
+    processAgent:
+      enabled: true
+
+    # Network monitoring
+    networkMonitoring:
+      enabled: false
+

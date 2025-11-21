@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "test-devops-app.fullname" . }}
+  labels:
+    app: {{ include "test-devops-app.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "test-devops-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "test-devops-app.name" . }}
+      annotations:
+{{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: SERVICE_NAME
+              value: "{{ .Values.env.serviceName }}"
+            - name: ENABLE_METRICS
+              value: "{{ .Values.env.enableMetrics }}"
+            - name: NODE_ENV
+              value: "{{ .Values.env.nodeEnv }}"
+            - name: DD_DOGSTATSD_PORT
+              value: "{{ .Values.env.ddDogstatsdPort }}"
+            # ใช้ host IP เป็น DD_AGENT_HOST (ยิงไปที่ Datadog Agent DaemonSet)
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          resources:
+{{- toYaml .Values.resources | nindent 12 }}

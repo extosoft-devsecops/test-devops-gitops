@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: test-devops  # ใช้ชื่อสั้นสำหรับ local
+  tag: "latest"
+  pullPolicy: Never  # ไม่ต้อง pull จาก registry, ใช้ local image
+
+service:
+  type: NodePort  # ใช้ NodePort เพื่อเข้าถึงผ่าน localhost
+  port: 3000
+  nodePort: 30080  # เข้าถึงผ่าน localhost:30080
+
+env:
+  serviceName: "test-devops"
+  enableMetrics: "false"  # ปิด metrics สำหรับ local testing
+  ddDogstatsdPort: "8125"
+  nodeEnv: "local"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+podAnnotations:
+  env: "local"
+  tier: "development"
+
+# ปิด Datadog Agent สำหรับ local testing
+datadog:
+  enabled: false
+

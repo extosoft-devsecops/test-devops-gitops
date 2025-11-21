@@ -1,0 +1,48 @@
+replicaCount: 3
+
+image:
+  tag: "prod"
+  pullPolicy: Always
+
+env:
+  serviceName: "test-devops"
+  enableMetrics: "true"
+  ddDogstatsdPort: "8125"
+  nodeEnv: "prod-gke"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1500m
+    memory: 2Gi
+
+podAnnotations:
+  env: "prod-gke"
+  tier: "prod"
+  cluster: "gke-prod"
+
+datadog:
+  enabled: true
+  apiKey: ""  # Set via --set or secret
+  site: "datadoghq.com"
+
+  agent:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+    apm:
+      enabled: true
+
+    processAgent:
+      enabled: true
+
+    networkMonitoring:
+      enabled: true
+

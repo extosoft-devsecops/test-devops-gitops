@@ -1,0 +1,130 @@
+{{- if .Values.datadog.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "test-devops-app.fullname" . }}-datadog-agent
+  labels:
+    app: datadog-agent
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  selector:
+    matchLabels:
+      app: datadog-agent
+  template:
+    metadata:
+      labels:
+        app: datadog-agent
+      annotations:
+        ad.datadoghq.com/agent.check_names: '["openmetrics"]'
+        ad.datadoghq.com/agent.init_configs: '[{}]'
+    spec:
+      serviceAccountName: {{ include "test-devops-app.fullname" . }}-datadog
+      containers:
+      - name: datadog-agent
+        image: "{{ .Values.datadog.agent.image.repository }}:{{ .Values.datadog.agent.image.tag }}"
+        imagePullPolicy: {{ .Values.datadog.agent.image.pullPolicy }}
+        ports:
+        {{- if .Values.datadog.agent.dogstatsd.enabled }}
+        - containerPort: {{ .Values.datadog.agent.dogstatsd.port }}
+          name: dogstatsdport
+          protocol: UDP
+          {{- if .Values.datadog.agent.dogstatsd.useHostPort }}
+          hostPort: {{ .Values.datadog.agent.dogstatsd.port }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.datadog.agent.apm.enabled }}
+        - containerPort: {{ .Values.datadog.agent.apm.port }}
+          name: traceport
+          protocol: TCP
+        {{- end }}
+        env:
+        - name: DD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "test-devops-app.fullname" . }}-datadog-secret
+              key: api-key
+        - name: DD_SITE
+          value: {{ .Values.datadog.site | quote }}
+        - name: DD_KUBERNETES_KUBELET_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        {{- if .Values.datadog.agent.dogstatsd.enabled }}
+        - name: DD_DOGSTATSD_NON_LOCAL_TRAFFIC
+          value: {{ .Values.datadog.agent.dogstatsd.nonLocalTraffic | quote }}
+        {{- end }}
+        {{- if .Values.datadog.agent.apm.enabled }}
+        - name: DD_APM_ENABLED
+          value: "true"
+        - name: DD_APM_NON_LOCAL_TRAFFIC
+          value: "true"
+        {{- end }}
+        {{- if .Values.datadog.agent.logs.enabled }}
+        - name: DD_LOGS_ENABLED
+          value: "true"
+        - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+          value: {{ .Values.datadog.agent.logs.containerCollectAll | quote }}
+        {{- end }}
+        {{- if .Values.datadog.agent.processAgent.enabled }}
+        - name: DD_PROCESS_AGENT_ENABLED
+          value: "true"
+        {{- end }}
+        {{- if .Values.datadog.agent.networkMonitoring.enabled }}
+        - name: DD_SYSTEM_PROBE_ENABLED
+          value: "true"
+        {{- end }}
+        - name: DD_HEALTH_PORT
+          value: "5555"
+        - name: KUBERNETES
+          value: "true"
+        resources:
+{{ toYaml .Values.datadog.agent.resources | indent 10 }}
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /var/run/docker.sock
+          readOnly: true
+        - name: procdir
+          mountPath: /host/proc
+          readOnly: true
+        - name: cgroups
+          mountPath: /host/sys/fs/cgroup
+          readOnly: true
+        {{- if .Values.datadog.agent.logs.enabled }}
+        - name: pointerdir
+          mountPath: /opt/datadog-agent/run
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5555
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5555
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+      volumes:
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+      - name: procdir
+        hostPath:
+          path: /proc
+      - name: cgroups
+        hostPath:
+          path: /sys/fs/cgroup
+      {{- if .Values.datadog.agent.logs.enabled }}
+      - name: pointerdir
+        hostPath:
+          path: /opt/datadog-agent/run
+      {{- end }}
+{{- end }}
+
