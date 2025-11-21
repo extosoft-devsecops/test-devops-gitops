@@ -1,0 +1,340 @@
+version: '1.0'
+        only: [main]
+      branch:
+    when:
+    value: gke_test-devops-478606_asia-southeast1-a_gke-prod
+  - key: KUBE_CONTEXT
+
+        only: [main]
+      branch:
+    when:
+    value: test-devops-prod
+  - key: NAMESPACE
+
+        only: [main]
+      branch:
+    when:
+    value: prod-gke
+  - key: ENV
+  # Production GKE Environment
+
+        only: [uat]
+      branch:
+    when:
+    value: gke_test-devops-478606_asia-southeast1-a_gke-nonprod
+  - key: KUBE_CONTEXT
+
+        only: [uat]
+      branch:
+    when:
+    value: test-devops-uat
+  - key: NAMESPACE
+
+        only: [uat]
+      branch:
+    when:
+    value: uat
+  - key: ENV
+  # UAT Environment
+
+        only: [develop]
+      branch:
+    when:
+    value: gke_test-devops-478606_asia-southeast1-a_gke-nonprod
+  - key: KUBE_CONTEXT
+
+        only: [develop]
+      branch:
+    when:
+    value: test-devops-develop
+  - key: NAMESPACE
+
+        only: [develop]
+      branch:
+    when:
+    value: develop
+  - key: ENV
+  # Development Environment
+variables:
+# ============================================
+# VARIABLES - กำหนดค่าตาม Branch
+# ============================================
+
+          deployFailed: steps.deploy_to_kubernetes.result == 'failure'
+        any:
+      condition:
+    when:
+          }'
+            }]
+              ]
+                {"title": "Build URL", "value": "${{CF_BUILD_URL}}", "short": false}
+                {"title": "Error", "value": "Check Codefresh build logs", "short": false},
+                {"title": "Branch", "value": "${{CF_BRANCH}}", "short": true},
+                {"title": "Namespace", "value": "${{NAMESPACE}}", "short": true},
+                {"title": "Environment", "value": "${{ENV}}", "short": true},
+              "fields": [
+              "color": "danger",
+            "attachments": [{
+            "text": "❌ Deployment Failed",
+          -d '{
+          -H 'Content-Type: application/json' \
+        curl -X POST ${{SLACK_WEBHOOK_URL}} \
+      - |
+    commands:
+    image: curlimages/curl:latest
+    title: Notify Failure
+    stage: notify
+  slack_notify_failure:
+
+          deploySuccess: steps.deploy_to_kubernetes.result == 'success'
+        all:
+      condition:
+    when:
+          }'
+            }]
+              ]
+                {"title": "Build URL", "value": "${{CF_BUILD_URL}}", "short": false}
+                {"title": "Deployed By", "value": "${{CF_BUILD_INITIATOR}}", "short": true},
+                {"title": "Commit", "value": "${{CF_COMMIT_MESSAGE}}", "short": false},
+                {"title": "Branch", "value": "${{CF_BRANCH}}", "short": true},
+                {"title": "Version", "value": "${{VERSION}}", "short": true},
+                {"title": "Namespace", "value": "${{NAMESPACE}}", "short": true},
+                {"title": "Environment", "value": "${{ENV}}", "short": true},
+              "fields": [
+              "color": "good",
+            "attachments": [{
+            "text": "✅ Deployment Success",
+          -d '{
+          -H 'Content-Type: application/json' \
+        curl -X POST ${{SLACK_WEBHOOK_URL}} \
+      - |
+    commands:
+    image: curlimages/curl:latest
+    title: Notify Success
+    stage: notify
+  slack_notify_success:
+  # ============================================
+  # STAGE: NOTIFY
+  # ============================================
+
+        helm status test-devops -n ${{NAMESPACE}}
+        echo "📦 Helm Release Status:"
+        echo ""
+      - |
+      # Helm release status
+      
+        kubectl get ingress -n ${{NAMESPACE}} || echo "No ingress found"
+        echo "🔗 Ingress Information:"
+        echo ""
+      - |
+      # Get ingress info (if exists)
+      
+        kubectl get svc -n ${{NAMESPACE}} -l app.kubernetes.io/name=test-devops
+        echo "🌐 Service Information:"
+      - |
+      # Get service info
+      
+      - echo ""
+      - echo "Image: gcr.io/test-devops-478606/test-devops-images/test-devops:${{IMAGE_TAG}}"
+      - echo "Version: ${{VERSION}}"
+      - echo "Namespace: ${{NAMESPACE}}"
+      - echo "Environment: ${{ENV}}"
+      - echo "================================"
+      - echo "📋 Deployment Information"
+      - echo "================================"
+
+      - kubectl config use-context ${{KUBE_CONTEXT}}
+    commands:
+    image: codefresh/cfstep-helm:3.13.0
+    title: Get Deployment Info
+    stage: verify
+  get_deployment_info:
+
+      - echo "✅ Verification completed"
+      
+          --all-containers=true || true
+          --tail=20 \
+          -l app.kubernetes.io/name=test-devops \
+        kubectl logs -n ${{NAMESPACE}} \
+        echo "📝 Latest logs:"
+      - |
+      # ตรวจสอบ logs
+
+        done
+          kubectl describe pod $POD -n ${{NAMESPACE}} | grep -A 5 "Events:"
+          kubectl get pod $POD -n ${{NAMESPACE}}
+          echo "Pod: $POD"
+        for POD in $PODS; do
+        PODS=$(kubectl get pods -n ${{NAMESPACE}} -l app.kubernetes.io/name=test-devops -o jsonpath='{.items[*].metadata.name}')
+        echo "🔍 Checking pod status..."
+      - |
+      # ตรวจสอบ pod status
+
+          -n ${{NAMESPACE}}
+          deployment/test-devops-app \
+          --timeout=300s \
+        kubectl wait --for=condition=available \
+        echo "⏳ Waiting for deployment to be ready..."
+      - |
+      # รอให้ deployment ready
+
+      - kubectl get svc -n ${{NAMESPACE}}
+      - kubectl get pods -n ${{NAMESPACE}}
+      - kubectl get deployment -n ${{NAMESPACE}}
+      - echo "📊 Checking deployment status..."
+
+      - kubectl config use-context ${{KUBE_CONTEXT}}
+    commands:
+    image: codefresh/cfstep-helm:3.13.0
+    title: Verify Deployment
+    stage: verify
+  verify_deployment:
+  # ============================================
+  # STAGE: VERIFY
+  # ============================================
+
+      - echo "✅ Deployment completed successfully"
+      
+          --debug
+          --timeout 10m \
+          --wait \
+          --set app.deployedBy="codefresh" \
+          --set app.gitRevision=${{CF_REVISION}} \
+          --set app.deployedAt=${{TIMESTAMP}} \
+          --set app.image.tag=${{IMAGE_TAG}} \
+          --values helms/test-devops/values-${{ENV}}.yaml \
+          --namespace ${{NAMESPACE}} \
+        helm upgrade --install test-devops helms/test-devops \
+      - |
+      # Deploy ด้วย Helm
+
+      - kubectl create namespace ${{NAMESPACE}} --dry-run=client -o yaml | kubectl apply -f -
+      # สร้าง namespace ถ้ายังไม่มี
+
+      - kubectl get nodes
+      - kubectl cluster-info
+      # ตรวจสอบ connection
+
+      - kubectl config use-context ${{KUBE_CONTEXT}}
+      # ตั้งค่า kubectl context
+
+      - echo "Namespace: ${{NAMESPACE}}"
+      - echo "Cluster: ${{KUBE_CONTEXT}}"
+      - echo "🚀 Deploying to ${{ENV}} environment..."
+    commands:
+    working_directory: ${{clone}}
+    image: codefresh/cfstep-helm:3.13.0
+    title: Deploy to Kubernetes
+    stage: deploy
+  deploy_to_kubernetes:
+
+    image_name: test-devops-478606/test-devops-images/test-devops
+    registry: gcr  # หรือ dockerhub, ecr
+      - latest
+      - ${{CF_BRANCH_TAG_NORMALIZED}}-latest
+      - ${{IMAGE_TAG}}
+    tags:
+    candidate: ${{build_image}}
+    type: push
+    title: Push Image to Registry
+    stage: deploy
+  push_to_registry:
+  # ============================================
+  # STAGE: DEPLOY
+  # ============================================
+
+      - cat /tmp/manifests.yaml | grep -A 3 "kind: Deployment"
+      - echo "Checking rendered manifests..."
+      - echo "✅ Helm template rendered successfully"
+      
+          --debug > /tmp/manifests.yaml
+          --namespace ${{NAMESPACE}} \
+          --set app.gitRevision=${{CF_REVISION}} \
+          --set app.deployedAt=${{TIMESTAMP}} \
+          --set app.image.tag=${{IMAGE_TAG}} \
+          -f helms/test-devops/values-${{ENV}}.yaml \
+        helm template test-devops helms/test-devops \
+      - |
+    commands:
+    working_directory: ${{clone}}
+    image: codefresh/cfstep-helm:3.13.0
+    title: Helm Template Test
+    stage: test
+  helm_template_dry_run:
+
+      - helm lint helms/test-devops -f helms/test-devops/values-${{ENV}}.yaml
+      - helm lint helms/test-devops
+    commands:
+    working_directory: ${{clone}}
+    image: codefresh/cfstep-helm:3.13.0
+    title: Helm Lint
+    stage: test
+  helm_lint:
+  # ============================================
+  # STAGE: TEST
+  # ============================================
+
+      - VERSION=${{VERSION}}
+      - VCS_REF=${{CF_REVISION}}
+      - BUILD_DATE=${{CF_BUILD_TIMESTAMP}}
+    build_arguments:
+    working_directory: ${{clone}}
+    dockerfile: Dockerfile
+    tag: ${{IMAGE_TAG}}
+    image_name: test-devops/app
+    type: build
+    title: Build Docker Image
+    stage: build
+  build_image:
+  # ============================================
+  # STAGE: BUILD
+  # ============================================
+
+      - echo "Namespace: ${{NAMESPACE}}"
+      - echo "Environment: ${{ENV}}"
+      - echo "Image Tag: $IMAGE_TAG"
+      - echo "Version: $VERSION"
+      # แสดงข้อมูล
+
+      - cf_export TIMESTAMP=$TIMESTAMP
+      - cf_export IMAGE_TAG=$IMAGE_TAG
+      - cf_export VERSION=$VERSION
+      # Export variables
+
+      - export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+      - export IMAGE_TAG="$VERSION"
+      - export VERSION="${CF_BRANCH_TAG_NORMALIZED}-${CF_SHORT_REVISION}"
+      # กำหนด version จาก branch + commit hash
+    commands:
+    image: alpine:latest
+    title: Export Variables
+    stage: prepare
+  export_variables:
+
+    git: github
+    revision: ${{CF_BRANCH}}
+    repo: extosoft-devsecops/test-devops-gitops
+    type: git-clone
+    title: Clone Repository
+    stage: prepare
+  clone:
+  # ============================================
+  # STAGE: PREPARE
+  # ============================================
+steps:
+
+  - notify
+  - verify
+  - deploy
+  - test
+  - build
+  - prepare
+stages:
+
+# ไม่ผ่าน ArgoCD หรือ GitOps tools อื่นๆ
+# Pipeline นี้จะ build, test และ deploy ไปยัง Kubernetes โดยตรง
+# ===================================================================
+# Codefresh Pipeline - Direct Deploy (ไม่ใช้ GitOps)
+# ===================================================================
+
+

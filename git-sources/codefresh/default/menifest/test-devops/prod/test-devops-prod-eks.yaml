@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test-devops-prod-eks
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+  labels:
+    environment: production
+    app: test-devops
+    platform: eks
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
+    targetRevision: main
+    path: helms/test-devops
+
+    helm:
+      valueFiles:
+        - values-prod-eks.yaml
+
+      parameters:
+        - name: global.environment
+          value: 'production'
+
+      releaseName: test-devops
+
+  destination:
+    # ⚠️ ต้องเปลี่ยนเป็น EKS cluster endpoint
+    # หรือ add cluster ใน ArgoCD ก่อน: argocd cluster add <context-name>
+    server: https://kubernetes.default.svc
+    # name: eks-prod  # ใช้ name ถ้า add cluster แล้ว
+    namespace: test-devops-prod
+
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
+
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
+      - Validate=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+
+  revisionHistoryLimit: 20
+

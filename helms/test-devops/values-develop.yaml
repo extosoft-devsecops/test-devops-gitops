@@ -1,14 +1,123 @@
+# ===========================
+# 🔧 Development Environment Override
+# ===========================
+# ไฟล์นี้จะ merge กับ values.yaml (default values)
+# Codefresh จะอัพเดท image.tag อัตโนมัติ
+
+global:
+  environment: develop
+
 app:
-  replicaCount: 1
+  name: test-devops
+  replicaCount: 1  # Development ใช้ 1 replica ก็พอ
+
   image:
-    tag: "latest" # CI จะ update ค่านี้
+    registry: asia-southeast1-docker.pkg.dev
+    repository: test-devops-478606/test-devops-images/test-devops
+    pullPolicy: Always  # Always pull สำหรับ dev
+    tag: "latest"  # ← Codefresh จะอัพเดทค่านี้
+
+  # Deployment metadata (Codefresh จะอัพเดท)
+  deployedAt: ""
+  gitRevision: ""
+  deployedBy: "codefresh"
+
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+
+  # Environment Variables
   env:
     nodeEnv: development
+    # STATSD_HOST จะถูก set อัตโนมัติใน template
+
+  # Health Checks - ปรับให้เร็วขึ้นสำหรับ dev
+  probes:
+    liveness:
+      enabled: true
+      path: /healthz
+      port: 3000
+      initialDelaySeconds: 15  # เร็วกว่า production
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /ready
+      port: 3000
+      initialDelaySeconds: 5   # เร็วกว่า production
+      periodSeconds: 5
+      timeoutSeconds: 2
+      failureThreshold: 3
+
+  # Resource Management - ใช้น้อยกว่า production
   resources:
     limits:
       cpu: 100m
       memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 
+  # Pod Disruption Budget - ปิดสำหรับ dev
+  podDisruptionBudget:
+    enabled: false
+
+  # HPA - ปิดสำหรับ dev (ใช้ fixed replicas)
+  hpa:
+    enabled: false
+
+# ===========================
+# 🌐 Ingress Configuration
+# ===========================
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # ไม่บังคับ SSL ใน dev
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"  # ใช้ staging cert
+
+  hosts:
+    - host: test-devops-dev.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+  tls:
+    enabled: false  # หรือใช้ self-signed cert
+    # secretName: test-devops-dev-tls
+    # hosts:
+    #   - test-devops-dev.yourdomain.com
+
+# ===========================
+# 📊 Graphite/StatsD
+# ===========================
 graphite:
+  enabled: true
+
+  image:
+    registry: docker.io
+    repository: graphiteapp/graphite-statsd
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    httpPort: 80
+    statsdPort: 8125
+
+  # Persistence - ปิดสำหรับ dev เพื่อประหยัด cost
   persistence:
-    enabled: false # Dev อาจจะไม่ต้องเก็บข้อมูลถาวรเพื่อประหยัด Cost
+    enabled: false
+    # size: 1Gi  # ถ้าต้องการเปิด
+
+  # Resources - ใช้น้อยสำหรับ dev
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
