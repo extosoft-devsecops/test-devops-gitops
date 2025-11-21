@@ -75,3 +75,6 @@ docs/
 
 # Ignore any test result files
 test_results/
+
+.terraform.lock.hcl
+terraform-gke/terraform.tfstate.d
