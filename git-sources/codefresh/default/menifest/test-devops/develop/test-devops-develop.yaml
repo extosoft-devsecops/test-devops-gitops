@@ -6,44 +6,30 @@ metadata:
     - resources-finalizer.argocd.argoproj.io/foreground
 spec:
   project: default
-
+  destination:
+    namespace: test-devops-develop
+    server: https://kubernetes.default.svc
   source:
+    path: helms/test-devops
     repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
-    path: helms/test-devops
-
-    # ✨ เพิ่มส่วนนี้เพื่อบอกว่าเป็น Helm chart
     helm:
-      # ระบุ values file สำหรับ develop environment
       valueFiles:
         - values-develop.yaml
-
-      # Parameters ที่ override (optional)
       parameters:
         - name: app.replicaCount
-          value: "2"
-        - name: app.image.tag
-          value: "develop-latest"
-
-      # Release name (optional, default คือ app name)
-      releaseName: test-devops-develop
-
-  destination:
-    server: https://kubernetes.default.svc  # เปลี่ยนจาก name เป็น server
-    namespace: test-devops-develop
-
+          value: '2'
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
       allowEmpty: false
     syncOptions:
-      - CreateNamespace=true  # เปลี่ยนเป็น true เพื่อสร้าง namespace อัตโนมัติ
       - PrunePropagationPolicy=foreground
-      - ServerSideApply=true
-      - Validate=true
-      - PruneLast=false
       - Replace=false
-
-  # เพิ่ม retry policy
-  revisionHistoryLimit: 10
+      - PruneLast=false
+      - Validate=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=false
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=false
