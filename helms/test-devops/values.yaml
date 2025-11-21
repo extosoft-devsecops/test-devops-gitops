@@ -1,0 +1,223 @@
+# ===========================
+# 🔧 Global Configuration
+# ===========================
+global:
+  imageRegistry: "asia-southeast1-docker.pkg.dev"
+  environment: production
+
+# ===========================
+# 🟢 Application Configuration
+# ===========================
+app:
+  name: test-devops
+  replicaCount: 1
+  
+  image:
+    registry: asia-southeast1-docker.pkg.dev
+    repository: test-devops-478606/test-devops-images/test-devops
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+    annotations: {}
+  
+  # Environment Variables
+  env:
+    nodeEnv: production
+    # Additional environment variables
+    # STATSD_HOST and STATSD_PORT will be auto-configured in deployment template
+  
+  # Security Context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+    capabilities:
+      drop:
+        - ALL
+  
+  # Container Security Context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  
+  # Health Checks
+  probes:
+    liveness:
+      enabled: true
+      path: /healthz
+      port: 3000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /ready
+      port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+  
+  # Resource Management
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # Node Selection
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  # Pod Disruption Budget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+  
+  # Horizontal Pod Autoscaler
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+# ===========================
+# 🌐 Ingress Configuration
+# ===========================
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  
+  hosts:
+    - host: test-devops.local
+      paths:
+        - path: /
+          pathType: Prefix
+  
+  tls:
+    enabled: false
+    secretName: test-devops-tls
+    hosts:
+      - test-devops.local
+
+# ===========================
+# 📊 Monitoring & Observability
+# ===========================
+# Graphite/StatsD Configuration
+graphite:
+  enabled: true
+  
+  image:
+    registry: docker.io
+    repository: graphiteapp/graphite-statsd
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    httpPort: 80
+    statsdPort: 8125
+    carbonPort: 2003
+    annotations: {}
+  
+  # Security Context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  
+  # Container Security Context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false # Graphite needs to write to disk
+    capabilities:
+      drop:
+        - ALL
+  
+  # Health Checks
+  probes:
+    liveness:
+      enabled: true
+      port: 80
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      port: 80
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  
+  # Resource Management
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  
+  # Persistence
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+    annotations: {}
+  
+  # Node Selection
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  # Configuration
+  config:
+    carbonCache:
+      maxCreatesPerMinute: 50
+      maxUpdatesPerSecond: 500
+    webapp:
+      timeZone: "Asia/Bangkok"
+    statsd:
+      flushInterval: 10000
+      deleteIdleStats: true
+
+# ===========================
+# 🔐 Service Account & RBAC
+# ===========================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ===========================
+# 📝 Pod Annotations & Labels
+# ===========================
+podAnnotations: {}
+podLabels: {}
+
+# ===========================
+# 🔧 Common Configuration
+# ===========================
+nameOverride: ""
+fullnameOverride: ""
+
+# Image Pull Secrets
+imagePullSecrets: []

@@ -1,0 +1,25 @@
+{{- if and .Values.graphite.enabled .Values.graphite.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "test-devops.fullname" . }}-graphite-data
+  labels:
+    {{- include "test-devops.graphite.labels" . | nindent 4 }}
+  {{- with .Values.graphite.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.graphite.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.graphite.persistence.size }}
+  {{- if .Values.graphite.persistence.storageClass }}
+  {{- if (eq "-" .Values.graphite.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ .Values.graphite.persistence.storageClass | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,113 @@
+{{- if .Values.graphite.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "test-devops.fullname" . }}-graphite
+  labels:
+    {{- include "test-devops.graphite.labels" . | nindent 4 }}
+spec:
+  replicas: 1 # Graphite should be single instance for data consistency
+  selector:
+    matchLabels:
+      {{- include "test-devops.graphite.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "test-devops.graphite.labels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "test-devops.serviceAccountName" . }}
+      securityContext:
+        {{- include "test-devops.graphite.securityContext" . | nindent 8 }}
+      containers:
+        - name: graphite
+          image: {{ include "test-devops.graphite.image" . }}
+          imagePullPolicy: {{ .Values.graphite.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.graphite.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http-ui
+              containerPort: 80
+              protocol: TCP
+            - name: statsd-udp
+              containerPort: {{ .Values.graphite.service.statsdPort }}
+              protocol: UDP
+            - name: carbon-line
+              containerPort: {{ .Values.graphite.service.carbonPort }}
+              protocol: TCP
+          env:
+            - name: GRAPHITE_TIME_ZONE
+              value: {{ .Values.graphite.config.webapp.timeZone | quote }}
+            - name: CARBON_CACHE_MAX_CREATES_PER_MINUTE
+              value: {{ .Values.graphite.config.carbonCache.maxCreatesPerMinute | quote }}
+            - name: CARBON_CACHE_MAX_UPDATES_PER_SECOND
+              value: {{ .Values.graphite.config.carbonCache.maxUpdatesPerSecond | quote }}
+            - name: STATSD_FLUSH_INTERVAL
+              value: {{ .Values.graphite.config.statsd.flushInterval | quote }}
+            - name: STATSD_DELETE_IDLE_STATS
+              value: {{ .Values.graphite.config.statsd.deleteIdleStats | quote }}
+          {{- if .Values.graphite.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.graphite.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.graphite.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.graphite.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.graphite.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.graphite.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.graphite.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.graphite.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.graphite.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.graphite.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.graphite.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.graphite.probes.readiness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.graphite.resources | nindent 12 }}
+          volumeMounts:
+            - name: graphite-storage
+              mountPath: /opt/graphite/storage
+            {{- if not .Values.graphite.containerSecurityContext.readOnlyRootFilesystem }}
+            - name: graphite-conf
+              mountPath: /opt/graphite/conf
+            - name: tmp
+              mountPath: /tmp
+            {{- end }}
+      volumes:
+        - name: graphite-storage
+          {{- if .Values.graphite.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "test-devops.fullname" . }}-graphite-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if not .Values.graphite.containerSecurityContext.readOnlyRootFilesystem }}
+        - name: graphite-conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.graphite.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.graphite.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.graphite.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

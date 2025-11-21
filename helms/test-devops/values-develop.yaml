@@ -1,0 +1,14 @@
+app:
+  replicaCount: 1
+  image:
+    tag: "latest" # CI จะ update ค่านี้
+  env:
+    nodeEnv: development
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+graphite:
+  persistence:
+    enabled: false # Dev อาจจะไม่ต้องเก็บข้อมูลถาวรเพื่อประหยัด Cost
