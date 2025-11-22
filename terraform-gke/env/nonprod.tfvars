@@ -16,27 +16,27 @@ environment             = "nonprod"
 enable_private_endpoint = false
 regional_cluster        = false
 
-# Release Channel
-release_channel        = "REGULAR"
-maintenance_start_time = "03:00"
+# Release Channel 
+release_channel        = "STABLE"
+maintenance_start_time = "07:00" # UTC time
 
 # Monitoring
 enable_managed_prometheus   = true
 enable_binary_authorization = false
 
 # System Node Pool
-system_node_count   = 1
-system_min_nodes    = 1
-system_max_nodes    = 3
-system_machine_type = "e2-medium"
+system_node_count   = 3
+system_min_nodes    = 3
+system_max_nodes    = 5
+system_machine_type = "e2-standard-2"
 
 # General Node Pool
-general_node_count   = 1
-general_min_nodes    = 1
-general_max_nodes    = 5
+general_node_count   = 3
+general_min_nodes    = 3
+general_max_nodes    = 9
 general_machine_type = "e2-standard-2"
 
 # Spot VM Pool (สำหรับประหยัดค่าใช้จ่าย)
-enable_spot_pool  = true
+enable_spot_pool  = false
 spot_max_nodes    = 5
 spot_machine_type = "e2-standard-2"
