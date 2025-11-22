@@ -1,0 +1,18 @@
+gitops-runtime:
+  argo-workflows:
+    controller:
+      workflowDefaults:
+        spec:
+          archiveLogs: true
+          artifactRepositoryRef:
+            configMap: codefresh-workflows-log-store
+            key: codefresh-workflows-log-store
+  global:
+    codefresh:
+      accountId: 69213786c86d8d732c1ea6ce
+      userToken:
+        secretKeyRef:
+          name: codefresh-user-token
+          key: token
+    runtime:
+      name: codefresh

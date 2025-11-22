@@ -3,20 +3,20 @@ kind: Application
 metadata:
   name: default-git-source
   labels:
-    codefresh.io/entity: git-source
+    codefresh.io/entity: 'git-source'
     codefresh.io/internal: 'false'
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: cf-git-sources
   sources:
-  - repoURL: https://github.com/extosoft-devsecops/test-devops.git
-    path: git-sources/codefresh/default
-    targetRevision: HEAD
-    directory:
-      include: '*'
-      exclude: ''
-      recurse: true
+    - repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
+      path: git-sources/codefresh/default
+      targetRevision: HEAD
+      directory:
+        include: '*'
+        exclude: ''
+        recurse: true
   destination:
     namespace: codefresh
     server: https://kubernetes.default.svc
