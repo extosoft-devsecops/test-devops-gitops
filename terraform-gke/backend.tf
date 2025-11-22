@@ -14,7 +14,8 @@
 terraform {
   backend "gcs" {
     bucket = "test-devops-terraform-state"
-    prefix = "terraform/gke"
+    # prefix จะถูกกำหนดผ่าน -backend-config ใน Makefile
+    # prefix = "terraform/gke/${ENV}"
 
     # เปิด state locking เพื่อป้องกันการรัน terraform พร้อมกัน
     # GCS backend ใช้ state locking โดยอัตโนมัติ
