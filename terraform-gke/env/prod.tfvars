@@ -1,4 +1,4 @@
-project_id    = "test-devops-478606"
+project_id    = "test-devops-479012"  # ใช้ project ID ใหม่
 region        = "asia-southeast1"
 zone          = "asia-southeast1-a"
 cluster_name  = "gke-prod"
