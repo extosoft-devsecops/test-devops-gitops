@@ -9,7 +9,7 @@ spec:
   - namespace: '*'
     server: '*'
   sourceRepos:
-  - https://github.com/extosoft-devsecops/test-devops.git
+  - https://github.com/extosoft-devsecops/test-devops-gitops.git
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
