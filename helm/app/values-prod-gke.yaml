@@ -1,7 +1,7 @@
 replicaCount: 3
 
 image:
-  tag: "prod"
+  tag: "latest"
   pullPolicy: Always
 
 env:
