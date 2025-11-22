@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  tag: "uat"
+  tag: "latest"
 
 env:
   serviceName: "test-devops"
