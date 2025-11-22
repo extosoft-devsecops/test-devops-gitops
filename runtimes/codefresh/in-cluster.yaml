@@ -18,7 +18,7 @@ spec:
         {all-runtimes-all-clusters/**/*.yaml,all-runtimes-all-clusters/*.yaml,codefresh/default-git-source.yaml,codefresh/test-devops-gitops.yaml,control-planes/**/*.yaml,control-planes/*.yaml,runtimes/codefresh/**/*.yaml,runtimes/codefresh/*.yaml}
       recurse: true
     path: resources
-    repoURL: https://github.com/extosoft-devsecops/test-devops.git
+    repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
   syncPolicy:
     automated:
