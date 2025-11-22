@@ -7,7 +7,8 @@ help: ## แสดงคำสั่งที่ใช้ได้
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 init: ## Initialize Terraform with environment-specific backend
-	terraform init -backend-config="prefix=terraform/gke/$(ENV)"
+	@echo "🔧 Initializing $(ENV) environment..."
+	terraform init -backend-config="backend-$(ENV).hcl" -reconfigure
 
 validate: ## Validate Terraform configuration
 	terraform validate

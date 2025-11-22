@@ -1,4 +1,4 @@
-project_id    = "test-devops-478606"
+project_id    = "test-devops-479012"  # ใช้ project ID ใหม่
 region        = "asia-southeast1"
 zone          = "asia-southeast1-a"
 cluster_name  = "gke-prod"
@@ -25,16 +25,16 @@ enable_managed_prometheus   = true
 enable_binary_authorization = false # ตั้งเป็น true ถ้าต้องการ security เพิ่มเติม
 
 # System Node Pool
-system_node_count   = 2
-system_min_nodes    = 2
+system_node_count   = 3
+system_min_nodes    = 3
 system_max_nodes    = 5
 system_machine_type = "e2-standard-2"
 
 # General Node Pool
 general_node_count   = 3
-general_min_nodes    = 2
-general_max_nodes    = 20
-general_machine_type = "e2-standard-4"
+general_min_nodes    = 3
+general_max_nodes    = 9
+general_machine_type = "e2-standard-2"
 
 # Spot VM Pool - ไม่แนะนำสำหรับ production critical workloads
 enable_spot_pool  = false
