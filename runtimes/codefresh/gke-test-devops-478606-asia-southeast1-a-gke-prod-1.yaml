@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    codefresh.io/entity: internal-config
+    codefresh.io/internal: 'true'
+  name: gke-test-devops-478606-asia-southeast1-a-gke-prod-1
+spec:
+  destination:
+    namespace: default
+    server: https://35.185.180.127
+  project: cf-runtime-app-project
+  source:
+    directory:
+      include: >-
+        {all-runtimes-all-clusters/**/*.yaml,all-runtimes-all-clusters/*.yaml,codefresh-managed-cluster-gke-test-devops-478606-asia-southeast1-a-gke-prod-1-cm.yaml,runtimes/codefresh/**/*.yaml,runtimes/codefresh/*.yaml}
+      recurse: true
+    path: resources
+    repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - allowEmpty=true
