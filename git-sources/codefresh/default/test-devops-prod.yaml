@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test-devops-prod
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  destination:
+    name: gke-test-devops-479012-asia-southeast1-a-gke-prod
+    namespace: gke-nonprod-test-devops-develop
+  source:
+    path: helm/app
+    repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - PrunePropagationPolicy=foreground
+      - Replace=false
+      - PruneLast=false
+      - Validate=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=false
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=false
