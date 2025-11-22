@@ -11,8 +11,8 @@ spec:
   project: cf-git-sources
   sources:
   - repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
-    path: helm/app
-    targetRevision: HEAD
+    path: git-sources/codefresh/default/
+    targetRevision: ​HEAD
     directory:
       include: ''
       exclude: ''
