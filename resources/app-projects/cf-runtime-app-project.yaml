@@ -9,7 +9,13 @@ spec:
   - namespace: '*'
     server: '*'
   sourceRepos:
-  - https://github.com/extosoft-devsecops/test-devops-gitops.git
+  - 'https://github.com/extosoft-devsecops/*'  # อนุญาตทุก repo ใน organization
+  - 'https://github.com/extosoft-devsecops/test-devops-gitops.git'  # เดิม
+  - 'https://github.com/extosoft-devsecops/test-devops-gitops'  # ไม่มี .git
+  - 'git@github.com:extosoft-devsecops/*'  # SSH format
   clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
   - group: '*'
     kind: '*'
