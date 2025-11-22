@@ -40,3 +40,7 @@ output "kubectl_connect_command" {
   value       = "gcloud container clusters get-credentials ${module.gke.cluster_name} --zone=${module.gke.cluster_location} --project=${var.project_id}"
 }
 
+output "ingress_external_ip" {
+  description = "NGINX Ingress Controller External IP"
+  value       = module.gke.ingress_external_ip
+}
