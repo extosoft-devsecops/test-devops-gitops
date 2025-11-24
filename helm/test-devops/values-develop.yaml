@@ -6,7 +6,7 @@ global:
 replicaCount: 1
 
 image:
-  tag: "latest"
+  tag: "develop-af9672f"
 
 # Ingress configuration for development
 ingress:
