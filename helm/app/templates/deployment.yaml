@@ -32,7 +32,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "test-devops-app.serviceAccountName" . }}
+      serviceAccountName: vault-auth
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
