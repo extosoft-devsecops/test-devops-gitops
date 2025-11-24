@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  tag: "main-9816a6c"
+  tag: "main-bbf594c"
 
 serviceAccount:
   create: true
