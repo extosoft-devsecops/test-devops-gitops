@@ -5,6 +5,11 @@ global:
 
 replicaCount: 1
 
+# Service Account configuration - MUST use vault-auth to match Vault role
+serviceAccount:
+  create: true
+  name: "vault-auth"
+
 image:
   tag: "develop-af9672f"
 
