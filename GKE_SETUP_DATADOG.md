@@ -96,3 +96,4 @@ Follow the same steps as non-prod with production values.
 - APM visible  
 - Node metrics available  
 
+**อัปเดตล่าสุด**: วันที่ 24 พฤศจิกายน 2025
