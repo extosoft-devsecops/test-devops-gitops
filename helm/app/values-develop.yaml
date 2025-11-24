@@ -31,10 +31,15 @@ podDisruptionBudget:
   enabled: false
 
 datadog:
-  enabled: true  # เปิดใช้งาน Datadog ผ่าน Vault secrets
+  enabled: false  # ปิดการ deploy Datadog DaemonSet
   apiKey: ""  # จะได้มาจาก Vault
   site: "datadoghq.com"
   useVaultSecrets: true
+  # External agent configuration
+  externalAgent:
+    enabled: true
+    host: "datadog-agent.datadog.svc.cluster.local"  # Datadog service in datadog namespace
+    port: 8125
 
   agent:
     resources:

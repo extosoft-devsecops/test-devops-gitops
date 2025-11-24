@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "test-devops-app.fullname" . }}
+  name: {{ include "test-devops.fullname" . }}
   labels:
-    {{- include "test-devops-app.labels" . | nindent 4 }}
+    {{- include "test-devops.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "test-devops-app.selectorLabels" . | nindent 6 }}
+      {{- include "test-devops.selectorLabels" . | nindent 6 }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -23,7 +23,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "test-devops-app.labels" . | nindent 8 }}
+        {{- include "test-devops.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -32,7 +32,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: vault-auth
+      serviceAccountName: {{ include "test-devops.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -51,75 +51,53 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           env:
             - name: PORT
-              {{- if .Values.vault.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: port
-              {{- else }}
-              value: "{{ .Values.service.targetPort }}"
-              {{- end }}
             - name: SERVICE_NAME
-              {{- if .Values.vault.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: service-name
-              {{- else }}
-              value: "{{ .Values.env.serviceName }}"
-              {{- end }}
             - name: ENABLE_METRICS
-              {{- if .Values.vault.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: enable-metrics
-              {{- else }}
-              value: "{{ .Values.env.enableMetrics }}"
-              {{- end }}
             - name: NODE_ENV
-              {{- if .Values.vault.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: node-env
-              {{- else }}
-              value: "{{ .Values.env.nodeEnv }}"
-              {{- end }}
             - name: DD_DOGSTATSD_PORT
-              value: "{{ .Values.env.ddDogstatsdPort }}"
-            {{- if .Values.datadog.externalAgent.enabled }}
-            - name: DD_AGENT_HOST
-              value: "{{ .Values.datadog.externalAgent.host }}"
-            - name: STATSD_HOST
-              value: "{{ .Values.datadog.externalAgent.host }}"
-            {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: dd-dogstatsd-port
             - name: DD_AGENT_HOST
               valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+                secretKeyRef:
+                  name: app-secrets
+                  key: dd-agent-host
             - name: STATSD_HOST
               valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            {{- end }}
-          {{- if .Values.vault.enabled }}
+                secretKeyRef:
+                  name: app-secrets
+                  key: dd-agent-host
           volumeMounts:
             - name: vault-secrets
               mountPath: "/mnt/secrets-store"
               readOnly: true
-          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- if .Values.vault.enabled }}
       volumes:
         - name: vault-secrets
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "vault-datadog-secret"
-      {{- end }}
+              secretProviderClass: "vault-secrets"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

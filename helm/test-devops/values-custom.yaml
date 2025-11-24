@@ -1,0 +1,87 @@
+# Custom Environment Values Example - Vault Only Configuration
+# This file shows how to customize Vault secret paths
+
+# To deploy with custom Vault configuration:
+# helm install test-app . --values values-custom.yaml
+
+# Base configuration
+replicaCount: 1
+
+# Image configuration  
+image:
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false  # Set to true to enable external access
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: test-devops-local.extosoft.app  # Change this for your environment
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: test-devops-local-tls
+      hosts:
+        - test-devops-local.extosoft.app
+
+# Vault configuration (required - all env vars come from Vault)
+vault:
+  enabled: true
+  address: "https://vault-devops.extosoft.app"
+  skipTLSVerify: "true"
+  roleName: "k8s-app"
+  serviceAccount: "vault-auth"
+  secrets:
+    secretPath: "secret/data/k8s/test-devops-local"  # Change this for different environments
+    fields:
+      port: "PORT"
+      nodeEnv: "NODE_ENV"
+      enableMetrics: "ENABLE_METRICS"
+      serviceName: "SERVICE_NAME"
+      ddDogstatsdPort: "DD_DOGSTATSD_PORT"
+      ddAgentHost: "DD_AGENT_HOST"
+
+# Use external Datadog agent
+datadog:
+  enabled: false
+  externalAgent:
+    enabled: true
+    host: "datadog-agent"  # Or "datadog-agent.datadog.svc.cluster.local" for external agent
+    port: 8125
+
+# Resource limits for local development
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Disable production features for local
+autoscaling:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+# Note: Environment variables are now managed exclusively through Vault secrets:
+# PORT: Configured via vault.secrets.secretPath -> PORT
+# NODE_ENV: Configured via vault.secrets.secretPath -> NODE_ENV  
+# ENABLE_METRICS: Configured via vault.secrets.secretPath -> ENABLE_METRICS
+# SERVICE_NAME: Configured via vault.secrets.secretPath -> SERVICE_NAME
+# DD_DOGSTATSD_PORT: Configured via vault.secrets.secretPath -> DD_DOGSTATSD_PORT
+# DD_AGENT_HOST: Configured via vault.secrets.secretPath -> DD_AGENT_HOST
+# STATSD_HOST: Same as DD_AGENT_HOST

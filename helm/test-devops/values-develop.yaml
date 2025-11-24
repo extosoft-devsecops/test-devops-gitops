@@ -1,0 +1,58 @@
+# Development environment configuration
+global:
+  clusterName: "gke-nonprod"
+  environment: "develop"
+
+replicaCount: 1
+
+image:
+  tag: "latest"
+
+# Ingress configuration for development
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: test-devops-dev.extosoft.app
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: test-devops-dev-tls
+      hosts:
+        - test-devops-dev.extosoft.app
+
+podAnnotations:
+  env: "develop"
+  tier: "nonprod"
+
+# Datadog external agent configuration
+datadog:
+  enabled: false
+  externalAgent:
+    enabled: true
+    host: "datadog-agent.datadog.svc.cluster.local"
+    port: 8125
+
+# Vault configuration
+vault:
+  enabled: true
+  address: "https://vault-devops.extosoft.app"
+  skipTLSVerify: "true"
+  roleName: "k8s-app"
+  serviceAccount: "vault-auth"
+  secrets:
+    secretPath: "secret/data/k8s/test-devops-develop"
+    fields:
+      port: "PORT"
+      serviceName: "SERVICE_NAME"
+      nodeEnv: "NODE_ENV"
+      enableMetrics: "ENABLE_METRICS"
+      ddDogstatsdPort: "DD_DOGSTATSD_PORT"
+      ddAgentHost: "DD_AGENT_HOST"
+

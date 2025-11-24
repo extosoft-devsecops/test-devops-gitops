@@ -1,0 +1,148 @@
+# Global configuration
+global:
+  clusterName: "local"
+  environment: "local"
+
+# Replica configuration
+replicaCount: 1
+
+# Image configuration
+image:
+  repository: asia-southeast1-docker.pkg.dev/test-devops-478606/test-devops-images/test-devops
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automount: true
+
+# Pod annotations and labels
+podAnnotations: {}
+podLabels: {}
+
+# Security contexts
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: test-devops-local.extosoft.app
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: test-devops-tls
+    #   hosts:
+    #     - test-devops-local.extosoft.app
+
+# Environment variables (configured via Vault secrets only)
+# See vault.secrets.fields for the actual environment variable mapping
+
+# Resource limits and requests
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Network Policy
+networkPolicy:
+  enabled: false
+
+# Node selection, tolerations and affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Datadog configuration
+datadog:
+  enabled: false  # ปิด DaemonSet deployment
+  externalAgent:
+    enabled: true
+    host: "datadog-agent.datadog.svc.cluster.local"
+    port: 8125
+
+# Vault configuration for secrets injection
+vault:
+  enabled: true  # Enable Vault secrets by default
+  address: "https://vault-devops.extosoft.app"
+  skipTLSVerify: "true"
+  roleName: "k8s-app"
+  serviceAccount: "vault-auth"
+  secrets:
+    secretPath: "/secret/data/k8s/test-devops-local"
+    fields:
+      port: "PORT"
+      nodeEnv: "NODE_ENV"
+      enableMetrics: "ENABLE_METRICS"
+      serviceName: "SERVICE_NAME"
+      ddDogstatsdPort: "DD_DOGSTATSD_PORT"
+      ddAgentHost: "DD_AGENT_HOST"

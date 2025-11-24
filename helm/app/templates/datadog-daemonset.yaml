@@ -1,4 +1,4 @@
-{{- if .Values.datadog.enabled }}
+{{- if and .Values.datadog.enabled (not .Values.datadog.externalAgent.enabled) }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

@@ -1,0 +1,61 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+================================================================================
+📦 Deployed Components:
+================================================================================
+
+✅ Application: {{ include "test-devops.fullname" . }}
+   - Replicas: {{ .Values.replicaCount }}
+   - Image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+   - Environment: {{ .Values.global.environment }}
+{{- if .Values.datadog.externalAgent.enabled }}
+✅ Datadog StatsD: External agent ({{ .Values.datadog.externalAgent.host }}:{{ .Values.datadog.externalAgent.port }})
+{{- end }}
+{{- if .Values.vault.enabled }}
+✅ Vault Secrets: Enabled ({{ .Values.vault.secrets.secretPath }})
+{{- end }}
+
+================================================================================
+🔍 Quick Commands:
+================================================================================
+
+1️⃣  Check pod status:
+   kubectl get pods -l {{ include "test-devops.selectorLabels" . | replace "\n" "," }}
+
+2️⃣  View application logs:
+   kubectl logs -l {{ include "test-devops.selectorLabels" . | replace "\n" "," }} --tail=50 -f
+
+3️⃣  Port forward to access the app:
+   kubectl port-forward svc/{{ include "test-devops.fullname" . }} 3000:3000
+   Then open: http://localhost:3000
+
+4️⃣  Health check:
+   curl http://localhost:3000/healthz
+
+================================================================================
+📊 Monitoring:
+================================================================================
+{{- if .Values.datadog.externalAgent.enabled }}
+StatsD metrics are being sent to: {{ .Values.datadog.externalAgent.host }}:{{ .Values.datadog.externalAgent.port }}
+View metrics in Datadog dashboard.
+{{- else }}
+⚠️  Datadog monitoring is disabled. Enable it by setting datadog.externalAgent.enabled=true
+{{- end }}
+
+================================================================================
+🛠️  Troubleshooting:
+================================================================================
+
+If pods are not running:
+  kubectl describe pod -l {{ include "test-devops.selectorLabels" . | replace "\n" "," }}
+
+{{- if .Values.vault.enabled }}
+If secrets are not loading:
+  kubectl get secretproviderclass vault-secrets
+  kubectl describe secretproviderclass vault-secrets
+{{- end }}
+
+================================================================================
+🎉 Happy Deploying!

@@ -1,4 +1,4 @@
-{{- if .Values.datadog.enabled }}
+{{- if and .Values.datadog.enabled (not .Values.datadog.externalAgent.enabled) }}d (not .Values.datadog.externalAgent.enabled) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

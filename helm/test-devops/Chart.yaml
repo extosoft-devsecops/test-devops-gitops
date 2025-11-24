@@ -1,0 +1,18 @@
+apiVersion: v2
+name: test-devops
+description: Production-ready Node.js application with Datadog StatsD monitoring and Vault secrets
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - nodejs
+  - datadog
+  - vault
+  - monitoring
+  - statsd
+  - production
+maintainers:
+  - name: DevSecOps Team
+    email: devsecops@extosoft.app
+
+
