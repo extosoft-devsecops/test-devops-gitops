@@ -1036,7 +1036,7 @@ export VAULT_TOKEN="hvs.xxxxxxxxxxxxxxxx"
 
 ## Troubleshooting
 
-หากพบปัญหา ให้ดู [VAULT_BEST_PRACTICES.md](./VAULT_BEST_PRACTICES.md) ในหัวข้อ Troubleshooting Guide
+หากพบปัญหา ให้ดู [VAULT_BEST_PRACTICES.md](VAULT_BEST_PRACTICES.md) ในหัวข้อ Troubleshooting Guide
 
 ---
 

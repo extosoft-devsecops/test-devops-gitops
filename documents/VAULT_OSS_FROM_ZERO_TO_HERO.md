@@ -1126,7 +1126,7 @@ vault write auth/kubernetes/role/app-role \
 
 ### 10.3 Test Integration
 
-ดูตัวอย่างใน [VAULT_SETUP_FROM_ZERO.md](./VAULT_SETUP_FROM_ZERO.md) Part 8
+ดูตัวอย่างใน [VAULT_SETUP_FROM_ZERO.md](VAULT_SETUP_FROM_ZERO.md) Part 8
 
 ---
 
