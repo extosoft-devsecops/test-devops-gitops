@@ -1,24 +1,30 @@
-{{- if false }}
+{{- if .Values.datadog.enabled }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "test-devops-app.fullname" . }}-datadog-agent
   labels:
-    app: datadog-agent
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    {{- include "test-devops-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: datadog-agent
 spec:
   selector:
     matchLabels:
-      app: datadog-agent
+      {{- include "test-devops-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: datadog-agent
   template:
     metadata:
       labels:
-        app: datadog-agent
+        {{- include "test-devops-app.labels" . | nindent 8 }}
+        app.kubernetes.io/component: datadog-agent
       annotations:
         ad.datadoghq.com/agent.check_names: '["openmetrics"]'
         ad.datadoghq.com/agent.init_configs: '[{}]'
     spec:
+      {{- if .Values.vault.enabled }}
+      serviceAccountName: {{ .Values.vault.serviceAccount }}
+      {{- else }}
       serviceAccountName: {{ include "test-devops-app.fullname" . }}-datadog
+      {{- end }}
       securityContext:
         runAsUser: 0
         runAsGroup: 0
@@ -56,9 +62,43 @@ spec:
         {{- end }}
         env:
         - name: DD_API_KEY
+          {{- if .Values.datadog.useVaultSecrets }}
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: dd-api-key
+          {{- else }}
           value: {{ .Values.datadog.apiKey | quote }}
+          {{- end }}
         - name: DD_SITE
+          {{- if .Values.datadog.useVaultSecrets }}
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: dd-site
+          {{- else }}
           value: {{ .Values.datadog.site | quote }}
+          {{- end }}
+        - name: DD_ENV
+          {{- if .Values.datadog.useVaultSecrets }}
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: dd-env
+          {{- else if .Values.global.environment }}
+          value: {{ .Values.global.environment | quote }}
+          {{- else }}
+          value: "unknown"
+          {{- end }}
+        - name: DD_HOSTNAME
+          {{- if .Values.datadog.useVaultSecrets }}
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: dd-hostname
+          {{- else }}
+          value: "{{ include "test-devops-app.fullname" . }}"
+          {{- end }}
         - name: DD_KUBERNETES_KUBELET_HOST
           valueFrom:
             fieldRef:
@@ -66,6 +106,8 @@ spec:
         {{- if .Values.datadog.agent.dogstatsd.enabled }}
         - name: DD_DOGSTATSD_NON_LOCAL_TRAFFIC
           value: {{ .Values.datadog.agent.dogstatsd.nonLocalTraffic | quote }}
+        - name: DD_DOGSTATSD_PORT
+          value: {{ .Values.datadog.agent.dogstatsd.port | quote }}
         {{- end }}
         {{- if .Values.datadog.agent.apm.enabled }}
         - name: DD_APM_ENABLED
@@ -97,18 +139,20 @@ spec:
           value: "true"
         - name: DD_LEADER_ELECTION
           value: "false"
+        {{- if .Values.global.clusterName }}
         - name: DD_CLUSTER_NAME
           value: {{ .Values.global.clusterName | quote }}
-        - name: DD_ENV
-          value: {{ .Values.global.environment | quote }}
-        - name: DD_TAGS
-          value: "env:{{ .Values.global.environment }},cluster:{{ .Values.global.clusterName }}"
+        {{- end }}
         - name: DD_AC_INCLUDE
           value: "image_name:.*"
         - name: DD_AC_EXCLUDE
           value: "name:datadog-agent"
+        {{- if .Values.global.clusterName }}
+        - name: DD_TAGS
+          value: "cluster:{{ .Values.global.clusterName }}"
+        {{- end }}
         resources:
-{{ toYaml .Values.datadog.agent.resources | indent 10 }}
+          {{- toYaml .Values.datadog.agent.resources | nindent 10 }}
         volumeMounts:
         - name: dockersocket
           mountPath: /var/run/docker.sock
@@ -125,6 +169,11 @@ spec:
           mountPath: /var/run/datadog
         - name: agent-etc
           mountPath: /etc/datadog-agent
+        {{- if and .Values.vault.enabled .Values.datadog.useVaultSecrets }}
+        - name: vault-secrets
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /health
@@ -159,5 +208,13 @@ spec:
         emptyDir: {}
       - name: agent-etc
         emptyDir: {}
+      {{- if and .Values.vault.enabled .Values.datadog.useVaultSecrets }}
+      - name: vault-secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "vault-datadog-secret"
+      {{- end }}
 {{- end }}
 

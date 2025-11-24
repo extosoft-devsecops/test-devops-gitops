@@ -4,8 +4,8 @@ kind: ClusterRole
 metadata:
   name: {{ include "test-devops-app.fullname" . }}-datadog
   labels:
-    app: datadog-agent
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    {{- include "test-devops-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: datadog-agent
 rules:
 - apiGroups:
   - ""

@@ -3,6 +3,11 @@ replicaCount: 2
 image:
   tag: "main-9816a6c"
 
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
 env:
   serviceName: "test-devops"
   enableMetrics: "true"
@@ -22,10 +27,15 @@ podAnnotations:
   tier: "nonprod"
   cluster: "gke-nonprod"
 
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
 datadog:
   enabled: true
-  apiKey: ""  # Set via --set or secret
+  apiKey: ""  # จะได้มาจาก Vault
   site: "datadoghq.com"
+  useVaultSecrets: true
 
   agent:
     resources:
@@ -38,4 +48,18 @@ datadog:
 
     apm:
       enabled: true
+
+# Vault configuration for secrets injection
+vault:
+  enabled: true
+  address: "https://vault-devops.extosoft.app"
+  skipTLSVerify: "true"
+  roleName: "k8s-app"
+  serviceAccount: "vault-auth"
+  secrets:
+    secretPath: "secret/data/k8s/test-devops-uat"
+    fields:
+      appName: "APP_NAME"
+      datadogApiKey: "DATA_DOG_API_KEY"
+      nodeEnv: "NODE_ENV"
 

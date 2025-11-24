@@ -3,38 +3,121 @@ kind: Deployment
 metadata:
   name: {{ include "test-devops-app.fullname" . }}
   labels:
-    app: {{ include "test-devops-app.name" . }}
+    {{- include "test-devops-app.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app: {{ include "test-devops-app.name" . }}
+      {{- include "test-devops-app.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
   template:
     metadata:
-      labels:
-        app: {{ include "test-devops-app.name" . }}
       annotations:
-{{- toYaml .Values.podAnnotations | nindent 8 }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "test-devops-app.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "test-devops-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: app
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 3000
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           env:
+            - name: PORT
+              {{- if .Values.vault.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: port
+              {{- else }}
+              value: "{{ .Values.service.targetPort }}"
+              {{- end }}
             - name: SERVICE_NAME
+              {{- if .Values.vault.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: service-name
+              {{- else }}
               value: "{{ .Values.env.serviceName }}"
+              {{- end }}
             - name: ENABLE_METRICS
+              {{- if .Values.vault.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: enable-metrics
+              {{- else }}
               value: "{{ .Values.env.enableMetrics }}"
+              {{- end }}
             - name: NODE_ENV
+              {{- if .Values.vault.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: node-env
+              {{- else }}
               value: "{{ .Values.env.nodeEnv }}"
+              {{- end }}
             - name: DD_DOGSTATSD_PORT
               value: "{{ .Values.env.ddDogstatsdPort }}"
-            # ใช้ host IP เป็น DD_AGENT_HOST (ยิงไปที่ Datadog Agent DaemonSet)
             - name: DD_AGENT_HOST
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+          {{- if .Values.vault.enabled }}
+          volumeMounts:
+            - name: vault-secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          {{- end }}
           resources:
-{{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.vault.enabled }}
+      volumes:
+        - name: vault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "vault-datadog-secret"
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
