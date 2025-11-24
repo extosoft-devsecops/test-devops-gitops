@@ -1,4 +1,4 @@
-# UAT environment configuration
+# Development environment configuration
 global:
   clusterName: "gke-nonprod"
   environment: "uat"
@@ -8,13 +8,12 @@ replicaCount: 1
 image:
   tag: "latest"
 
-# Ingress configuration for UAT
+# Ingress configuration for development
 ingress:
   enabled: true
   className: "nginx"
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
@@ -30,10 +29,6 @@ ingress:
 podAnnotations:
   env: "uat"
   tier: "nonprod"
-
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
 
 # Datadog external agent configuration
 datadog:
@@ -59,5 +54,4 @@ vault:
       enableMetrics: "ENABLE_METRICS"
       ddDogstatsdPort: "DD_DOGSTATSD_PORT"
       ddAgentHost: "DD_AGENT_HOST"
-  metrics:
-    useHostIP: true
+
