@@ -10,21 +10,15 @@ spec:
     name: in-cluster
     namespace: gke-nonprod-test-devops-uat
   source:
-    path: helm/app
+    path: helm/test-devops
     repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
-
-    # ✨ เพิ่มส่วนนี้เพื่อบอกว่าเป็น Helm chart และใช้ values-uat.yaml
     helm:
-      releaseName: test-devops
       valueFiles:
-        - values-uat.yaml  # ← ตรงนี้! บอก ArgoCD ให้ใช้ values-uat.yaml
-
-      # Parameters เพิ่มเติม (optional)
+        - values-uat.yaml
       parameters:
         - name: global.environment
-          value: 'uat'
-
+          value: uat
   syncPolicy:
     automated:
       prune: true
