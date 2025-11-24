@@ -8,6 +8,11 @@ replicaCount: 1
 image:
   tag: "latest"
 
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "vault-auth"
+
 # Ingress configuration for development
 ingress:
   enabled: true
