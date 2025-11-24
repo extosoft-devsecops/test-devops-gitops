@@ -8,12 +8,28 @@ spec:
   project: default
   destination:
     name: gke-test-devops-479012-asia-southeast1-a-gke-prod
-    namespace: gke-nonprod-test-devops-develop
+    namespace: gke-prod-test-devops
   source:
     path: helm/app
     repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
+
+    # ✨ เพิ่มส่วนนี้เพื่อบอกว่าเป็น Helm chart และใช้ values-prod-gke.yaml
+    helm:
+      releaseName: test-devops
+      valueFiles:
+        - values-prod-gke.yaml  # ← ตรงนี้! บอก ArgoCD ให้ใช้ production values
+
+      # Parameters เพิ่มเติม (optional)
+      parameters:
+        - name: global.environment
+          value: 'production'
+
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
     syncOptions:
       - PrunePropagationPolicy=foreground
       - Replace=false

@@ -59,7 +59,13 @@ vault:
   secrets:
     secretPath: "secret/data/k8s/test-devops-uat"
     fields:
+      ddApiKey: "DD_API_KEY"
+      ddSite: "DD_SITE"
+      ddEnv: "DD_ENV"
+      ddHostname: "DD_HOSTNAME"
       appName: "APP_NAME"
-      datadogApiKey: "DATA_DOG_API_KEY"
       nodeEnv: "NODE_ENV"
+      serviceName: "SERVICE_NAME"
+      port: "PORT"
+      enableMetrics: "ENABLE_METRICS"
 
