@@ -10,21 +10,15 @@ spec:
     name: in-cluster
     namespace: gke-nonprod-test-devops-develop
   source:
-    path: helm/app
+    path: helm/test-devops
     repoURL: https://github.com/extosoft-devsecops/test-devops-gitops.git
     targetRevision: HEAD
-
-    # ✨ เพิ่มส่วนนี้เพื่อบอกว่าเป็น Helm chart และใช้ values-develop.yaml
     helm:
-      releaseName: test-devops
       valueFiles:
-        - values-develop.yaml  # ← ตรงนี้! บอก ArgoCD ให้ใช้ values-develop.yaml
-
-      # Parameters เพิ่มเติม (optional)
+        - values-develop.yaml
       parameters:
         - name: global.environment
-          value: 'develop'
-
+          value: develop
   syncPolicy:
     automated:
       prune: true
