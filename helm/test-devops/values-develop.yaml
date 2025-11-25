@@ -11,7 +11,7 @@ serviceAccount:
   name: "vault-auth"
 
 image:
-  tag: "develop-af9672f"
+  tag: "develop-a20d7cd"
 
 # Ingress configuration for development
 ingress:
