@@ -6,7 +6,7 @@ global:
 replicaCount: 1
 
 image:
-  tag: "main-3edbc04"
+  tag: "main-54614d0"
 
 # ServiceAccount configuration
 serviceAccount:
